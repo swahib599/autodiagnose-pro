@@ -17,9 +17,9 @@ const Booking = () => {
 
   // Initialize EmailJS
   useEffect(() => {
-    // Using your public key from the account info
-    emailjs.init("GISgm4Kmmb8xIOfe1");
+    emailjs.init("GlSgm4Kmmb8xIOfe1");
   }, []);
+
 
   const handleChange = (e) => {
     setFormData({
@@ -33,50 +33,34 @@ const Booking = () => {
     setIsSubmitting(true);
     
     try {
-      // Send email to customer
-      const customerTemplateParams = {
-        to_name: formData.name,
-        to_email: formData.email,
-        from_name: "AutoDiagnose Pro",
-        reply_to: "chadeagle143@gmail.com",
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        vehicle: formData.vehicle,
-        year: formData.year,
-        service: formData.service,
-        issue: formData.issue,
-        date: new Date().toLocaleString()
+      // Format appointment details as message (simplified to avoid duplication with template)
+      const appointmentMessage = `NEW APPOINTMENT BOOKING
+
+Customer: ${formData.name}
+Vehicle: ${formData.year} ${formData.vehicle}
+Service: ${formData.service}
+Issue: ${formData.issue || "No specific issue mentioned"}
+Booking Date: ${new Date().toLocaleString()}`;
+
+      // Send admin notification email using EmailJS directly from frontend
+      // Try using minimal template parameters first
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email, 
+        message: appointmentMessage,
+        to_name: "AutoDiagnose Pro",
+        reply_to: formData.phone,
+        phone_number: formData.phone
       };
 
-      // Send email to admin (you)
-      const adminTemplateParams = {
-        to_name: "AutoDiagnose Pro Team",
-        to_email: "chadeagle143@gmail.com",
-        from_name: "Website Contact Form",
-        reply_to: formData.email,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        vehicle: formData.vehicle,
-        year: formData.year,
-        service: formData.service,
-        issue: formData.issue,
-        date: new Date().toLocaleString()
-      };
-
-      // Send both emails using your actual Service ID
-      await emailjs.send(
-        "service_1khjeq5", // Your actual Service ID from EmailJS
-        "template_customer_appointment", // Customer template ID
-        customerTemplateParams
-      );
-
-      await emailjs.send(
-        "service_1khjeq5", // Your actual Service ID from EmailJS
-        "template_admin_notification", // Admin template ID
-        adminTemplateParams
-      );
+      console.log('Sending EmailJS with params:', templateParams);
+      console.log('Phone number being sent:', formData.phone);
+      console.log('Form data check:', formData);
+      
+      // Send email using the correct template ID
+      console.log('Sending with template ID: template_apccp0m');
+      const result = await emailjs.send("service_1khjeq5", "template_apccp0m", templateParams);
+      console.log('EmailJS success result:', result);
 
       setSubmitMessage('Appointment request sent successfully! We will contact you within 24 hours.');
       setFormData({
@@ -89,7 +73,8 @@ const Booking = () => {
         issue: ''
       });
     } catch (error) {
-      console.error('Email sending error:', error);
+      console.error('EmailJS error:', error);
+      console.error('Error details:', error.text, error.status);
       setSubmitMessage('Failed to send appointment request. Please try again or contact us directly.');
     } finally {
       setIsSubmitting(false);
