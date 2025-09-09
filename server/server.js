@@ -32,7 +32,7 @@ app.post("/send-email", async (req, res) => {
       body: JSON.stringify({
         service_id: process.env.EMAILJS_SERVICE_ID,
         template_id: process.env.EMAILJS_TEMPLATE_ID,
-        user_id: process.env.EMAILJS_USER_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
         template_params: {
           from_name: name,
           from_email: email,
@@ -49,6 +49,76 @@ app.post("/send-email", async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ success: false, error: "Failed to send email." });
+  }
+});
+
+// Appointment booking email route
+app.post("/send-appointment-email", async (req, res) => {
+  const { name, email, phone, vehicle, year, service, issue } = req.body;
+
+  if (!name || !email || !phone || !vehicle || !year || !service) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "All required fields must be filled." 
+    });
+  }
+
+  try {
+    // Format appointment details as a message
+    const appointmentMessage = `
+NEW APPOINTMENT BOOKING
+
+Customer Details:
+- Name: ${name}
+- Email: ${email}
+- Phone: ${phone}
+
+Vehicle Information:
+- Vehicle: ${year} ${vehicle}
+- Service Requested: ${service}
+
+Issue Description:
+${issue || "No specific issue mentioned"}
+
+Booking Date: ${new Date().toLocaleString()}
+
+Please contact the customer within 24 hours to confirm the appointment.
+    `;
+
+    // Send admin notification using the working contact form template
+    const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        service_id: process.env.EMAILJS_SERVICE_ID,
+        template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
+        template_params: {
+          from_name: name,
+          from_email: email,
+          message: appointmentMessage,
+          to_email: "centyanita@gmail.com",
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`EmailJS API error: ${response.statusText} - ${errorText}`);
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Appointment request sent successfully! We will contact you within 24 hours." 
+    });
+  } catch (error) {
+    console.error("Error sending appointment email:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to send appointment request. Please try again or contact us directly." 
+    });
   }
 });
 
