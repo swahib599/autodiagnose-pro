@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // Test route
 app.get("/", (req, res) => {
-  res.send("Server is running...");
+  res.json({ status: "OK", message: "Server is running..." });
 });
 
 // EmailJS contact form route
@@ -57,9 +57,9 @@ app.post("/send-appointment-email", async (req, res) => {
   const { name, email, phone, vehicle, year, service, issue } = req.body;
 
   if (!name || !email || !phone || !vehicle || !year || !service) {
-    return res.status(400).json({ 
-      success: false, 
-      error: "All required fields must be filled." 
+    return res.status(400).json({
+      success: false,
+      error: "All required fields must be filled."
     });
   }
 
@@ -109,19 +109,20 @@ Please contact the customer within 24 hours to confirm the appointment.
       throw new Error(`EmailJS API error: ${response.statusText} - ${errorText}`);
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Appointment request sent successfully! We will contact you within 24 hours." 
+    res.status(200).json({
+      success: true,
+      message: "Appointment request sent successfully! We will contact you within 24 hours."
     });
   } catch (error) {
     console.error("Error sending appointment email:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Failed to send appointment request. Please try again or contact us directly." 
+    res.status(500).json({
+      success: false,
+      error: "Failed to send appointment request. Please try again or contact us directly."
     });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Listen on all network interfaces (important for deployment)
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
